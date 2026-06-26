@@ -5,22 +5,40 @@ import RustyVideo from './RustyVideo';
 import ChatIcon from './ChatIcon';
 import ChatWindow from './ChatWindow';
 import Home from './Home';
+import LoadingScreen from './LoadingScreen';
+import { init, hasWebGPU, transcribe, chat, speak } from './localAI';
 
 function AppContent() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
   const [recordingStatus, setRecordingStatus] = useState('Hold Space to Start Recording');
   const [emotion, setEmotion] = useState('neutral');
-  const [captureImage, setCaptureImage] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [ready, setReady] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const supported = hasWebGPU();
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-  const imageBlobRef = useRef(null);
-  const backendUrl = 'http://localhost:8000';
 
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
   };
+
+  // Load the local models on mount; greet out loud once ears+voice are ready.
+  useEffect(() => {
+    if (!supported) return;
+    init({
+      onProgress: setProgress,
+      onSpeechReady: async () => {
+        const greeting = "yo yo yo! my brain's still booting but i can already hear you 🐼";
+        setMessages((prev) => [...prev, { type: 'rusty', text: greeting }]);
+        const url = await speak(greeting);
+        if (url) setAudioUrl(url);
+      },
+    })
+      .then(() => setReady(true))
+      .catch((e) => console.error('init failed', e));
+  }, [supported]);
 
   const handleAudioResponse = (url, emotionFromResponse, responseText, userText, isTextOnly = false) => {
     setAudioUrl(url);
@@ -34,51 +52,30 @@ function AppContent() {
     }
   };
 
-  const handleImageCapture = (blob) => {
-    imageBlobRef.current = blob;
-  };
-
-  const sendAudioAndImage = async (textInput = null) => {
-    const formData = new FormData();
-    const isTextOnly = !!textInput;
-
-    if (isTextOnly) {
-      formData.append('text', textInput);
-    } else {
-      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-      formData.append('audio', audioBlob, 'input.webm');
-      if (imageBlobRef.current) {
-        formData.append('image', imageBlobRef.current, 'capture.jpg');
-      }
-    }
-
+  const runTurn = async (textInput = null) => {
     try {
-      const response = await fetch(`${backendUrl}/process-audio`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        setRecordingStatus(`Error: ${errorData.error}`);
-        setEmotion('sad');
+      let userText = textInput;
+      if (!userText) {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        userText = await transcribe(audioBlob);
+      }
+      if (!userText) {
+        setRecordingStatus('Hold Space to Start Recording');
         return;
       }
-
-      const data = await response.json();
-      const audioUrl = `data:audio/mpeg;base64,${data.audio}`;
-      handleAudioResponse(audioUrl, data.emotion, data.response_text, data.user_text, isTextOnly);
+      setRecordingStatus('Rusty is thinking...');
+      const { text, emotion: replyEmotion } = await chat(userText);
+      const url = await speak(text);
+      handleAudioResponse(url, replyEmotion, text, userText, !!textInput);
     } catch (error) {
-      setRecordingStatus(`Fetch error: ${error.message}`);
+      setRecordingStatus(`Error: ${error.message}`);
       setEmotion('sad');
-    } finally {
-      imageBlobRef.current = null;
     }
   };
 
   const handleSendMessage = (text) => {
     setMessages((prev) => [...prev, { type: 'user', text }]);
-    sendAudioAndImage(text);
+    runTurn(text);
   };
 
   useEffect(() => {
@@ -87,13 +84,12 @@ function AppContent() {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorderRef.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
         audioChunksRef.current = [];
-        
+
         mediaRecorderRef.current.ondataavailable = (event) => {
           audioChunksRef.current.push(event.data);
         };
-        mediaRecorderRef.current.onstop = () => sendAudioAndImage();
+        mediaRecorderRef.current.onstop = () => runTurn();
 
-        setCaptureImage(() => true);
         mediaRecorderRef.current.start();
         setRecordingStatus('Recording...');
       } catch (error) {
@@ -108,7 +104,6 @@ function AppContent() {
         mediaRecorderRef.current.stop();
         mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
         setRecordingStatus('Processing...');
-        setCaptureImage(null);
       }
     };
 
@@ -132,6 +127,7 @@ function AppContent() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recordingStatus]);
 
   const handleAudioEnd = () => {
@@ -140,14 +136,16 @@ function AppContent() {
     setEmotion('neutral');
   };
 
+  if (!supported) return <LoadingScreen progress={0} supported={false} />;
+  if (!ready && progress < 40) return <LoadingScreen progress={progress} supported={true} />;
+
   return (
     <div className="App">
-      <RustyVideo emotion={emotion} onCaptureImage={captureImage ? handleImageCapture : null} />
+      <RustyVideo emotion={emotion} />
       <ChatIcon onClick={toggleChat} />
       {isChatOpen && (
         <ChatWindow
           onClose={toggleChat}
-          backendUrl={backendUrl}
           messages={messages}
           onSendMessage={handleSendMessage}
         />
