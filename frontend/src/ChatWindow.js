@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ChatWindow.css';
 
-const ChatWindow = ({ onClose, backendUrl, messages, onSendMessage }) => {
+const ChatWindow = ({ onClose, messages, onSendMessage }) => {
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef(null);
 

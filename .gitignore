@@ -12,20 +12,8 @@ frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
 
-# Backend
-backend/.venv/
-backend/__pycache__/
-backend/*.pyc
-backend/.env
-backend/google-auth-key.json
-backend/key.txt
-
-# Temp files generated at runtime
-backend/*.webm
-backend/*.mp3
-backend/*.jpg
-backend/input_*.webm
-backend/image_*.jpg
+# Old API backend — removed from the app; never commit its venv or secrets
+backend/
 
 # OS
 .DS_Store

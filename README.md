@@ -1,58 +1,38 @@
 # Rusty 🐼
 
-**Talk to an AI red panda that listens, thinks, and talks back — in real time.**
+**Talk to a chaotic AI red panda that runs entirely in your browser — no servers, no API keys. Turn your wifi off and he still hears you, thinks, and talks back.**
 
-Rusty is a voice-first AI companion powered by Google Gemini, ElevenLabs TTS, and Google Speech-to-Text. Speak to him, show him a photo, or type — he responds with personality, emotion, and his own voice.
+Rusty is a voice-first AI companion where *everything runs locally on your machine* via WebGPU: speech recognition, the language model, and the voice. After a one-time model download, the whole conversation happens on-device — fully offline.
 
 ---
 
 ## Features
 
-- **Voice input** — speak directly to Rusty via your microphone
-- **Image understanding** — share a photo and Rusty reacts to it
-- **Emotional responses** — Rusty expresses happy, sad, neutral, or angry moods with matching animations
-- **Natural voice output** — powered by ElevenLabs text-to-speech
-- **Conversation memory** — keeps context across turns so the chat flows naturally
+- **100% local** — STT, LLM, and TTS all run in your browser. Zero network calls after the first load.
+- **Voice input** — hold Space and talk to Rusty.
+- **Chaotic personality** — a funny, unhinged-but-PG-13 red panda who roasts you with love.
+- **Emotional avatar** — Rusty reacts with happy / sad / neutral video animations.
+- **Talk + type** — speak to him or use the chat window.
 
 ## Tech Stack
 
-| Layer | Tech |
-|---|---|
-| Frontend | React 19, React Router |
-| Backend | FastAPI, Python |
-| Speech-to-Text | Google Cloud Speech API |
-| AI / LLM | Google Gemini 1.5 Pro |
-| Text-to-Speech | ElevenLabs |
+| Job | Library | Model |
+|---|---|---|
+| Speech→Text | [Transformers.js](https://github.com/huggingface/transformers.js) | `whisper-tiny.en` |
+| Brain | [WebLLM](https://github.com/mlc-ai/web-llm) | `Qwen2.5-0.5B-Instruct` |
+| Text→Speech | [kokoro-js](https://github.com/hexgrad/kokoro) | Kokoro-82M |
+| UI | React 19 | — |
+
+Everything runs on **WebGPU**. No backend, no API keys.
 
 ---
 
-## Setup
-
-### Prerequisites
+## Requirements
 
 - Node.js 18+
-- Python 3.10+
-- Google Cloud project with Speech-to-Text API enabled
-- Gemini API key
-- ElevenLabs API key
+- A **WebGPU browser** — Chrome or Edge on desktop (recommended). No WebGPU = unsupported screen.
 
-### Backend
-
-```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate   # Windows
-pip install -r requirements.txt
-
-cp .env.example .env
-# Fill in your keys in .env
-```
-
-```bash
-uvicorn app:app --reload --port 8000
-```
-
-### Frontend
+## Run it
 
 ```bash
 cd frontend
@@ -60,18 +40,19 @@ npm install
 npm start
 ```
 
-App runs at `http://localhost:3000`. Backend must be running on port `8000`.
+Open `http://localhost:3000/app`. On first visit, Rusty downloads ~600MB of models (cached in your browser afterward, so later visits boot in seconds and work offline). He'll greet you out loud as soon as his ears and voice load, while the brain finishes in the background.
+
+## Build (static deploy)
+
+```bash
+cd frontend
+npm run build
+```
+
+The `build/` folder is a fully static site — deploy it anywhere (GitHub Pages, Vercel, Netlify). There's no server to run.
 
 ---
 
-## Environment Variables
+## How it works
 
-Copy `backend/.env.example` to `backend/.env` and fill in:
-
-| Variable | Description |
-|---|---|
-| `GEMINI_API_KEY` | Google Gemini API key |
-| `ELEVENLABS_API_KEY` | ElevenLabs API key |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Path to your Google service account JSON |
-
-Never commit your `.env` or credentials file.
+Hold **Space** → your mic records → Whisper transcribes it locally → Qwen generates a reply as `{text, emotion}` → Kokoro speaks it → the avatar plays the matching emotion clip. Every step runs on your device.
