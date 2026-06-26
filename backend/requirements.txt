@@ -1,0 +1,15 @@
+flask
+flask-socketio
+pyaudio
+webrtcvad
+numpy
+requests
+elevenlabs # For ElevenLabs TTS
+python-dotenv
+fastapi
+uvicorn[standard]
+python-multipart
+google-api-python-client
+oauth2client
+colorama
+google-generativeai

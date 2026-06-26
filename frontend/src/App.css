@@ -1,0 +1,231 @@
+html, body, #root, .App {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.rusty-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-feed {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 20vw; /* 20% of viewport width, adjustable */
+  height: calc(20vw * 9 / 16); /* 16:9 ratio */
+  object-fit: cover; /* Keeps aspect, crops if needed */
+  border: 2px solid #b93030; /* Rusty’s red border */
+  border-radius: 8px;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .camera-feed {
+    width: 30vw; /* Bigger on small screens */
+    height: calc(30vw * 9 / 16);
+  }
+}
+
+
+/* Chat Icon */
+.chat-icon {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #e5533d; /* Tomato red for Rusty vibes */
+  color: #000000;
+  font-size: 40px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.chat-icon:hover {
+  background-color: #ff6f59;
+}
+
+/* Chat Window */
+.chat-window {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 400px;
+  height: 100%;
+  background: rgba(173, 79, 79, 0.1);
+  backdrop-filter: blur(10px); /* Blurs what’s behind */
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(0); /* Slides in from right */
+  animation: slideIn 0.2s ease-in-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.chat-header {
+  padding: 15px;
+  background-color: #e5533d; /* Slightly darker red */
+  color: #fff;
+  font-size: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.message {
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 5px;
+  max-width: 80%;
+}
+
+.message.user {
+  background-color: #ff6347;
+  color: #fff;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.message.bot {
+  background-color: #f0f0f0;
+  color: #333;
+  align-self: flex-start;
+}
+
+.chat-input {
+  padding: 15px;
+  font-size: 15px;
+  border: none;
+  border-top: 1px solid #ddd;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chat-window, .chat-header, .message, .chat-input {
+  font-family: 'Poppins', sans-serif;
+}
+
+.chat-header {
+  font-weight: 600; /* Bold header */
+}
+
+.message {
+  font-size: 14px;
+}
+
+.chat-input {
+  font-size: 14px;
+}
+
+.video-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #fff;
+  background: rgba(161, 10, 10, 0.685);
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-family: 'Poppins', sans-serif;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .chat-window {
+    width: 100%; /* Full width on mobile */
+    max-width: 300px;
+  }
+  .camera-feed {
+    width: 100px;
+    height: 75px; /* Smaller on mobile */
+  }
+  .chat-icon {
+    bottom: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.chat-input-container {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #ddd;
+}
+
+/* Existing styles unchanged, add this at the bottom */
+.recording-status {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(229, 83, 61, 0.7); /* Frosted red, semi-transparent */
+  backdrop-filter: blur(5px); /* Frosted effect */
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  text-align: center;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.rusty-happy {
+  filter: brightness(1.2) saturate(1.5); /* Bright and cheerful */
+}
+.rusty-sad {
+  filter: grayscale(0.8) brightness(0.7); /* Dull and muted */
+}
+.rusty-angry {
+  filter: hue-rotate(0deg) brightness(1.1) saturate(2); /* Reddish tint */
+}
+.rusty-neutral {
+  filter: none; /* Normal */
+}
