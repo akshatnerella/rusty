@@ -1,4 +1,4 @@
-import { parseRustyReply } from './localAI';
+import { parseRustyReply } from './parseReply';
 
 test('parses clean JSON', () => {
   expect(parseRustyReply('{"text":"yo!","emotion":"happy"}'))
