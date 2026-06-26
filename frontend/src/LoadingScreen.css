@@ -1,0 +1,6 @@
+.loading-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100vh; gap: 16px; font-family: sans-serif; text-align: center; padding: 24px;
+}
+.loading-bar { width: 260px; height: 12px; background: #eee; border-radius: 6px; overflow: hidden; }
+.loading-bar > div { height: 100%; background: #c0622d; transition: width .3s ease; }
